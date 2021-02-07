@@ -1,0 +1,11 @@
+Start by installing anaconda from https://docs.anaconda.com/anaconda/install/
+
+# Create and activate conda environment:
+conda create -n cds python=3.8
+conda activate cds
+
+# Install requirements
+pip install -r requirements.txt
+
+# Run basic_image_processing
+python src/word_counts.py

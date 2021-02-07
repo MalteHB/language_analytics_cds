@@ -1,0 +1,11 @@
+Start by installing anaconda from https://docs.anaconda.com/anaconda/install/
+
+# Create conda env:
+conda create -n cds python=3.8
+
+# Install requirements
+pip install -r requirements.txt
+
+# Conda install packages
+conda install opencv -y
+conda install ipykernel -y
