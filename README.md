@@ -11,6 +11,10 @@ To run and use the Python files located in the `src/` folder, I recommend instal
 To create an environment capable of running the `.py`files in this repo create run the following code in a terminal:
 
 ```bash
+# Clone the GitHub
+git clone https://github.com/MalteHB/language_analytics_cds.git
+cd language_analytics_cds 
+
 # Create conda env:
 conda create -n cds python=3.8
 
@@ -18,6 +22,7 @@ conda create -n cds python=3.8
 conda activate cds
 
 # Install requirements
+c
 pip install -r requirements.txt
 
 # Conda install packages
