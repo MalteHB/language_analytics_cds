@@ -55,7 +55,7 @@ class Collocation:
 
         tt = self.tokenize(text)
 
-        p = self.get_cooccurrences(tokenized_text=tt, keyword="world", window_size=5)
+        p = self.get_collocates(tokenized_text=tt, keyword="world", window_size=5)
 
 
 
