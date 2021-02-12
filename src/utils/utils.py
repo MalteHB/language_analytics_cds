@@ -3,20 +3,21 @@
 from pathlib import Path
 import re
 
-def setting_default_data_dir(self, path):
+def setting_default_data_dir():
     """Setting a default data directory
 
     Returns:
         PosixPath: Data directory
     """
 
-    root_dir = Path.cwd(path)  # Setting root directory.
+    root_dir = Path.cwd()  # Setting root directory.
 
-    data_dir = root_dir / path  # Setting data directory.
+    data_dir = root_dir / "data" / "cenlab" / "texts"  # Setting data directory.
 
     return data_dir
 
-def setting_default_out_dir(self):
+
+def setting_default_out_dir():
     """Setting a default Output directory
 
     Returns:
@@ -24,11 +25,12 @@ def setting_default_out_dir(self):
     """
     root_dir = Path.cwd()  # Setting root directory.
 
-    data_dir = root_dir / "out"  # Setting data directory.
+    data_dir = root_dir / "data" / "cenlab" / "texts"  # Setting data directory.
 
     return data_dir
 
-def get_filepaths_from_data_dir(self, data_dir, file_extension="*.txt"):
+
+def get_filepaths_from_data_dir(data_dir, file_extension="*.txt"):
     """Creates a list containing paths to filenames in a data directoryl
 
     Args:
@@ -39,6 +41,7 @@ def get_filepaths_from_data_dir(self, data_dir, file_extension="*.txt"):
     files = [file for file in data_dir.glob(file_extension) if file.is_file()]  # Using list comprehension to get all the file names if they are files.
 
     return files
+
 
 def get_filename(self, file):
     """Creates a list of filenames in a directory.
@@ -54,7 +57,8 @@ def get_filename(self, file):
 
     return filename
 
-def load_text(self, file):
+
+def load_text(file):
     """Loads an image.
 
     Args:
@@ -75,13 +79,3 @@ def load_text(self, file):
     return text
 
 
-def tokenize(self, input_string):
-    
-    # Split on any non-alphanumeric character
-    tokenizer = re.compile(r"\W+")
-    
-    # Tokenize
-    token_list = tokenizer.split(input_string)
-    
-    # Return token_list
-    return token_list
