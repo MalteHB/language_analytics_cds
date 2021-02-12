@@ -12,7 +12,7 @@ def setting_default_data_dir():
 
     root_dir = Path.cwd()  # Setting root directory.
 
-    data_dir = root_dir / "data" / "cenlab" / "texts"  # Setting data directory.
+    data_dir = root_dir / "data" / "100_english_novels" / "corpus"  # Setting data directory.
 
     return data_dir
 
@@ -25,7 +25,7 @@ def setting_default_out_dir():
     """
     root_dir = Path.cwd()  # Setting root directory.
 
-    data_dir = root_dir / "data" / "cenlab" / "texts"  # Setting data directory.
+    data_dir = root_dir / "data" / "100_english_novels" / "corpus"  # Setting data directory.
 
     return data_dir
 
@@ -72,7 +72,13 @@ def load_text(file):
 
     with open(file, encoding="utf-8") as f:
 
-        text = f.read()
+        try:
+
+            text = f.read()
+
+        except:
+
+            print("wtf")
 
         f.close()
 

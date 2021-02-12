@@ -52,9 +52,7 @@ class Collocation:
 
         files = get_filepaths_from_data_dir(self.data_dir)  # Getting all the absolute filepaths from the data directory.
 
-        text = load_text(files[0])
-
-        tokenized_text = self.tokenize(text)
+        tokenized_text = self.get_concatenated_texts(files)
 
         collocates = self.word_collocates(tokenized_text=tokenized_text, keyword=keyword, window_size=window_size)
 
@@ -99,6 +97,21 @@ class Collocation:
 
 
         print("Done")
+
+
+    def get_concatenated_texts(self, files):
+        
+        text_corpus = []
+
+        for file in files:
+
+            text = load_text(file)
+
+            tokenized_text = self.tokenize(text)
+
+            text_corpus.extend(tokenized_text)
+
+        return text_corpus
 
 
     def word_collocates(self, tokenized_text, keyword, window_size):
