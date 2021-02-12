@@ -3,16 +3,16 @@
 from pathlib import Path
 import re
 
-def setting_default_data_dir(self):
+def setting_default_data_dir(self, path):
     """Setting a default data directory
 
     Returns:
         PosixPath: Data directory
     """
 
-    root_dir = Path.cwd()  # Setting root directory.
+    root_dir = Path.cwd(path)  # Setting root directory.
 
-    data_dir = root_dir / "data" / "cenlab" / "texts"  # Setting data directory.
+    data_dir = root_dir / path  # Setting data directory.
 
     return data_dir
 
