@@ -3,9 +3,10 @@
 # Importing packages
 
 import argparse
+import re
 
 import pandas as pd
-import re
+import numpy as np
 
 from utils.utils import setting_default_data_dir, setting_default_out_dir, get_filepaths_from_data_dir, load_text
 
@@ -29,7 +30,7 @@ def main(args):
 
 class Collocation:
 
-    def __init__(self, data_dir=None, out_dir=None, keyword="dog", window_size=5):
+    def __init__(self, data_dir=None, out_dir=None, keyword="world", window_size=5):
 
         self.data_dir = data_dir
 
@@ -53,19 +54,54 @@ class Collocation:
 
         text = load_text(files[0])
 
-        tt = self.tokenize(text)
+        tokenized_text = self.tokenize(text)
 
-        p = self.get_collocates(tokenized_text=tt, keyword="world", window_size=5)
+        collocates = self.word_collocates(tokenized_text=tokenized_text, keyword=keyword, window_size=window_size)
 
+        raw_frequencies = []
 
+        MIs = []
 
+        for collocate in collocates:
+
+            raw_frequency = self.raw_frequency(tokenized_text=tokenized_text, keyword=collocate)
+
+            O11 = self.joint_frequency(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate, window_size=window_size)
+
+            O12 = self.disjoint_frequency(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate, window_size=window_size)
+
+            O21 = self.disjoint_frequency(tokenized_text=tokenized_text, keyword=collocate, collocate=keyword, window_size=window_size)
+
+            O22 = self.n_words_without_keyword_and_collocate(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate)
+
+            N = len(tokenized_text)
+
+            R1 = O11 + O12
+
+            C1 = O11 + O21
+
+            # Expected
+            E11 = (R1 * C1 / N)
+
+            # return MI
+            MI = np.log2(O11 / E11)
+
+            raw_frequencies.append(raw_frequency)
+
+            MIs.append(MI)
+
+        data_dict = {"collocate": collocates,
+                     "raw_frequency": raw_frequencies,
+                     "MI": MIs}
+
+        df = pd.DataFrame(data=data_dict)
 
 
 
         print("Done")
 
 
-    def get_collocates(self, tokenized_text, keyword, window_size):
+    def word_collocates(self, tokenized_text, keyword, window_size):
 
         collocates = []
 
@@ -73,9 +109,9 @@ class Collocation:
 
             if word == keyword:
 
-                left_window = tokenized_text[i - window_size:i]
+                left_window = tokenized_text[max(0, i - window_size):i]
 
-                right_window = tokenized_text[i:i + window_size + 1]
+                right_window = tokenized_text[i:(i + window_size + 1)]
 
                 total_window = left_window + right_window
 
@@ -86,27 +122,72 @@ class Collocation:
         return unique_collocates
 
 
-    def kwic(self, text, keyword, window_size=50):
-        # For all regex matches
-        for match in re.finditer(keyword, text):
-            # first character index of match
-            word_start = match.start()
-            # last character index of match
-            word_end = match.end()
-            
-            # Left window
-            left_window_start = max(0, word_start-window_size)
-            left_window = text[left_window_start:word_start]
-            
-            # Right window
-            right_window_end = word_end + window_size
-            right_window = text[word_end : right_window_end]
-            
-            # print line
-            line = f"{left_window}{keyword}{right_window}"
-            
-            return line
+    def raw_frequency(self, tokenized_text, keyword):
 
+        word_counter = 0
+
+        for word in tokenized_text:
+
+            if word == keyword:
+
+                word_counter += 1
+
+        return word_counter
+
+
+    def joint_frequency(self, tokenized_text, keyword, collocate, window_size):
+
+        joint_frequency = 0
+
+        for i, word in enumerate(tokenized_text):
+
+            if word == keyword:
+
+                left_window = tokenized_text[max(0, i - window_size):i]
+
+                right_window = tokenized_text[i:(i + window_size + 1)]
+
+                total_window = left_window + right_window
+
+                if keyword and collocate in total_window:
+
+                    joint_frequency += 1
+
+        return joint_frequency
+
+
+    def disjoint_frequency(self, tokenized_text, keyword, collocate, window_size):
+
+        disjoint_frequency = 0
+
+        for i, word in enumerate(tokenized_text):
+
+            if word == keyword:
+
+                left_window = tokenized_text[max(0, i - window_size):i]
+
+                right_window = tokenized_text[i:(i + window_size + 1)]
+
+                total_window = left_window + right_window
+
+                if keyword in total_window and collocate not in total_window:
+
+                    disjoint_frequency += 1
+
+        return disjoint_frequency
+
+
+    def n_words_without_keyword_and_collocate(self, tokenized_text, keyword, collocate):
+
+        word_counter = 0
+
+        for word in tokenized_text:
+
+            if word != keyword and word != collocate:
+
+                word_counter += 1
+
+        return word_counter
 
 
     def tokenize(self, input_string):
@@ -119,37 +200,6 @@ class Collocation:
 
         # Return token_list
         return token_list
-
-    def get_concatenated_texts(self, files):
-        
-        text_corpus = []
-
-        for file in files:
-
-            text = load_text(file)
-
-            tokenized_text = self.tokenize(text)
-
-            text_corpus.extend(tokenized_text)
-
-        return text_corpus
-
-
-
-    def get_collocation(self, keyword, tokenized_text, window_size):
-        """Gets the number of occurences of a word
-
-        Args:
-            keyword (str): A string with the keyword
-            tokenized_text (list): List of words
-        """
-
-        for token in tokenized_text:
-            if token in keyword:
-                counter += 1
-
-        return counter
-
 
 
 if __name__ == "__main__":
