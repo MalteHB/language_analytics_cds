@@ -1,7 +1,7 @@
 {
     "python.linting.flake8Enabled": true,
     "python.linting.enabled": true,
-    "python.pythonPath": "C:\\tools\\Anaconda3\\envs\\cds\\python.exe",
+    "python.pythonPath": "/Users/malte/opt/anaconda3/envs/cds/bin/python",
     "python.testing.pytestArgs": [
         "tests"
     ],

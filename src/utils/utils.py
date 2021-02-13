@@ -25,9 +25,9 @@ def setting_default_out_dir():
     """
     root_dir = Path.cwd()  # Setting root directory.
 
-    data_dir = root_dir / "data" / "100_english_novels" / "corpus"  # Setting data directory.
+    out_dir = root_dir / "out" # Setting data directory.
 
-    return data_dir
+    return out_dir
 
 
 def get_filepaths_from_data_dir(data_dir, file_extension="*.txt"):

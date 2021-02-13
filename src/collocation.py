@@ -7,9 +7,9 @@ import re
 
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
 from utils.utils import setting_default_data_dir, setting_default_out_dir, get_filepaths_from_data_dir, load_text
-
 
 
 def main(args):
@@ -30,7 +30,7 @@ def main(args):
 
 class Collocation:
 
-    def __init__(self, data_dir=None, out_dir=None, keyword="world", window_size=5):
+    def __init__(self, data_dir=None, out_dir=None, keyword="world", window_size=2, number_of_files=10):
 
         self.data_dir = data_dir
 
@@ -39,6 +39,8 @@ class Collocation:
         self.keyword = keyword
 
         self.window_size = window_size
+
+        self.number_of_files = number_of_files
 
         if self.data_dir is None:
 
@@ -52,66 +54,70 @@ class Collocation:
 
         files = get_filepaths_from_data_dir(self.data_dir)  # Getting all the absolute filepaths from the data directory.
 
-        tokenized_text = self.get_concatenated_texts(files)
+        print(f"Initiating collocation calculations for the files in '{self.data_dir}'")
 
-        collocates = self.word_collocates(tokenized_text=tokenized_text, keyword=keyword, window_size=window_size)
+        for file in tqdm(files[0:self.number_of_files]):  # tqdm for progress bar and limiting the amount of files, because these calculations take alot of time.
 
-        raw_frequencies = []
+            tokenized_text = self.get_tokenized_text(file)
 
-        MIs = []
+            collocates = self.word_collocates(tokenized_text=tokenized_text, keyword=keyword, window_size=window_size)
 
-        for collocate in collocates:
+            raw_frequencies = []
 
-            raw_frequency = self.raw_frequency(tokenized_text=tokenized_text, keyword=collocate)
+            MIs = []
 
-            O11 = self.joint_frequency(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate, window_size=window_size)
+            # print(f"Calculating collocates for '{file.name}'.")
 
-            O12 = self.disjoint_frequency(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate, window_size=window_size)
+            for collocate in tqdm(collocates):  # tqdm for progress bar
 
-            O21 = self.disjoint_frequency(tokenized_text=tokenized_text, keyword=collocate, collocate=keyword, window_size=window_size)
+                raw_frequency = self.raw_frequency(tokenized_text=tokenized_text, keyword=collocate)  # Raw frequency of collocate
 
-            O22 = self.n_words_without_keyword_and_collocate(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate)
+                O11 = self.joint_frequency(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate, window_size=window_size) # Joint frequency of keyword and collocate
 
-            N = len(tokenized_text)
+                O12 = self.disjoint_frequency(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate, window_size=window_size)  # Disjoint frequency of keyword and collocate
 
-            R1 = O11 + O12
+                O21 = self.disjoint_frequency(tokenized_text=tokenized_text, keyword=collocate, collocate=keyword, window_size=window_size)  # Disjoint frequency of collocate as keyword and keyword as collocate
 
-            C1 = O11 + O21
+                O22 = self.n_words_without_keyword_and_collocate(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate)  # All the words in the corpus that are not either the keyword nor the collocate
 
-            # Expected
-            E11 = (R1 * C1 / N)
+                N = O11 + O12 + O21 + O22  # There is doubt whether to calculate N like this or by simply taking len(tokenized_text)
 
-            # return MI
-            MI = np.log2(O11 / E11)
+                R1 = O11 + O12  # Calculating R1
 
-            raw_frequencies.append(raw_frequency)
+                C1 = O11 + O21  # Calculating C1
 
-            MIs.append(MI)
+                # Expected
+                E11 = (R1 * C1 / N)  # Expected frequency
 
-        data_dict = {"collocate": collocates,
-                     "raw_frequency": raw_frequencies,
-                     "MI": MIs}
+                # return MI
+                MI = np.log2(O11 / E11)  # Mutual information
 
-        df = pd.DataFrame(data=data_dict)
+                raw_frequencies.append(raw_frequency)
 
+                MIs.append(MI)
 
+            data_dict = {"collocate": collocates,
+                         "raw_frequency": raw_frequencies,
+                         "MI": MIs}
+
+            df = pd.DataFrame(data=data_dict)
+
+            df = df.sort_values("raw_frequency", ascending=False)  # Sorting collocates with highest frequency at the top.
+
+            write_path = self.out_dir / f"collocates_{file.stem}.csv"
+            
+            df.to_csv(write_path)
 
         print("Done")
 
 
-    def get_concatenated_texts(self, files):
+    def get_tokenized_text(self, file):
         
-        text_corpus = []
+        text = load_text(file)
 
-        for file in files:
+        tokenized_text = self.tokenize(text)
 
-            text = load_text(file)
-
-            tokenized_text = self.tokenize(text)
-
-            text_corpus.extend(tokenized_text)
-
-        return text_corpus
+        return tokenized_text
 
 
     def word_collocates(self, tokenized_text, keyword, window_size):
@@ -196,7 +202,7 @@ class Collocation:
 
         for word in tokenized_text:
 
-            if word != keyword and word != collocate:
+            if word not in keyword and word not in collocate:
 
                 word_counter += 1
 
@@ -213,6 +219,21 @@ class Collocation:
 
         # Return token_list
         return token_list
+
+    
+    def get_concatenated_texts(self, files):
+        
+        text_corpus = []
+
+        for file in files:
+
+            text = load_text(file)
+
+            tokenized_text = self.tokenize(text)
+
+            text_corpus.extend(tokenized_text)
+
+        return text_corpus
 
 
 if __name__ == "__main__":
