@@ -72,7 +72,7 @@ class Collocation:
 
                 raw_frequency = self.raw_frequency(tokenized_text=tokenized_text, keyword=collocate)  # Raw frequency of collocate
 
-                O11 = self.joint_frequency(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate, window_size=window_size) # Joint frequency of keyword and collocate
+                O11 = self.joint_frequency(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate, window_size=window_size)  # Joint frequency of keyword and collocate
 
                 O12 = self.disjoint_frequency(tokenized_text=tokenized_text, keyword=keyword, collocate=collocate, window_size=window_size)  # Disjoint frequency of keyword and collocate
 
@@ -105,14 +105,14 @@ class Collocation:
             df = df.sort_values("raw_frequency", ascending=False)  # Sorting collocates with highest frequency at the top.
 
             write_path = self.out_dir / f"collocates_{file.stem}.csv"
-            
+
             df.to_csv(write_path)
 
         print("Done")
 
 
     def get_tokenized_text(self, file):
-        
+
         text = load_text(file)
 
         tokenized_text = self.tokenize(text)
@@ -220,9 +220,9 @@ class Collocation:
         # Return token_list
         return token_list
 
-    
+
     def get_concatenated_texts(self, files):
-        
+
         text_corpus = []
 
         for file in files:
@@ -250,6 +250,6 @@ if __name__ == "__main__":
                         metavar="out_dir",
                         type=str,
                         help='A path to the output directory',
-                        required=False)                
+                        required=False)
 
     main(parser.parse_args())

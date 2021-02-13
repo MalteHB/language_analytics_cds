@@ -1,7 +1,7 @@
 #!usr/bin/env python3
 
 from pathlib import Path
-import re
+
 
 def setting_default_data_dir():
     """Setting a default data directory
@@ -25,7 +25,7 @@ def setting_default_out_dir():
     """
     root_dir = Path.cwd()  # Setting root directory.
 
-    out_dir = root_dir / "out" # Setting data directory.
+    out_dir = root_dir / "out"  # Setting data directory.
 
     return out_dir
 
@@ -76,12 +76,10 @@ def load_text(file):
 
             text = f.read()
 
-        except:
+        except TypeError:
 
             print("wtf")
 
         f.close()
 
     return text
-
-
