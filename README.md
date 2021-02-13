@@ -22,12 +22,8 @@ conda create -n cds python=3.8
 conda activate cds
 
 # Install requirements
-c
 pip install -r requirements.txt
 
-# Conda install packages
-conda install opencv -y
-conda install ipykernel -y
 ```
 
 
