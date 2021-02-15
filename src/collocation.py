@@ -89,7 +89,7 @@ class Collocation:
         raw_frequencies = []
 
         MIs = []
-        
+
         for collocate in tqdm(collocates):  # tqdm for progress bar
 
             raw_frequency = self.raw_frequency(tokenized_text=tokenized_text, keyword=collocate)  # Raw frequency of collocate
