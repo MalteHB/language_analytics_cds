@@ -1,7 +1,6 @@
 #!usr/bin/env python3
 
 # Importing packages
-
 import argparse
 import re
 
@@ -46,7 +45,7 @@ class Collocation:
             print(f"\nData directory is not specified.\nSetting it to '{self.data_dir}'.")
 
         self.out_dir = out_dir
-        
+
         if self.out_dir is None:
 
             self.out_dir = setting_default_out_dir()  # Setting default output directory.
@@ -90,7 +89,7 @@ class Collocation:
         raw_frequencies = []
 
         MIs = []
-
+        
         for collocate in tqdm(collocates):  # tqdm for progress bar
 
             raw_frequency = self.raw_frequency(tokenized_text=tokenized_text, keyword=collocate)  # Raw frequency of collocate
@@ -101,9 +100,9 @@ class Collocation:
 
             O21 = self.disjoint_frequency(tokenized_text=tokenized_text, keyword=collocate, collocate=self.keyword, window_size=self.window_size)  # Disjoint frequency of collocate as keyword and keyword as collocate
 
-            O22 = self.n_words_without_keyword_and_collocate(tokenized_text=tokenized_text, keyword=self.keyword, collocate=collocate)  # All the words in the corpus that are not either the keyword nor the collocate
-
-            N = O11 + O12 + O21 + O22  # There is doubt whether to calculate N like this or by simply taking len(tokenized_text)
+            # O22 = self.n_words_without_keyword_and_collocate(tokenized_text=tokenized_text, keyword=self.keyword, collocate=collocate)  # All the words in the corpus that are not either the keyword nor the collocate
+            # Ross specified that N is simply the length of the entire corpus, hence the outcommenting on O22. There is, however, still doubt whether to calculate N like this or by simply taking len(tokenized_text)
+            N = len(tokenized_text)  # O11 + O12 + O21 + O22
 
             R1 = O11 + O12  # Calculating R1
 
