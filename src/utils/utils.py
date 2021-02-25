@@ -12,7 +12,7 @@ def setting_default_data_dir():
 
     root_dir = Path.cwd()  # Setting root directory.
 
-    data_dir = root_dir / "data" / "100_english_novels" / "corpus"  # Setting data directory.
+    data_dir = root_dir / "data" / "abcnews-date-text.csv"  # Setting data directory.
 
     return data_dir
 
