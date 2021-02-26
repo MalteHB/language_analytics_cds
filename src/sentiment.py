@@ -107,10 +107,10 @@ class Sentiment:
         one_month_average = df.polarity.rolling("30D").mean()  # Setting a month to last approximately 30 days.
 
         self.save_plot(series=one_week_average,
-                       title="1-week Rolling Average Polarity of News Headlines")
+                       title="1-week Rolling Average Polarity of News Headlines")  # ANSWER: With the weekly rolling average we are seeing a slight decrease towards '08-'09 which could be due to the financial crisis. From there, however, it just goes slightly up.
 
         self.save_plot(series=one_month_average,
-                       title="1-month Rolling Average Polarity of News Headlines")
+                       title="1-month Rolling Average Polarity of News Headlines")  # ANSWER: With the monthly rolling average we are seeing the same tendency, but it seems that headlines are getting more positive towards the end of 2020. Perhaps due to the thought that COVID-19 would be a remnant of 2020. Little did they know... :(
 
 
     def calculate_polarity(self, text_series, batch_size):
