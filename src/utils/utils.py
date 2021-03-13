@@ -3,32 +3,52 @@
 from pathlib import Path
 
 
-def setting_default_data_dir():
+def setting_default_data_dir(assigment=4):
     """Setting a default data directory
 
     Returns:
         PosixPath: Data directory
     """
 
-    root_dir = Path.cwd()  # Setting root directory.
+    if assigment == 3:
 
-    data_dir = root_dir / "data" / "abcnews-date-text.csv"  # Setting data directory.
+        root_dir = Path.cwd()  # Setting root directory.
+
+        data_dir = root_dir / "data" / "abcnews-date-text.csv"  # Setting data directory.
+
+    if assigment == 4:
+
+        root_dir = Path.cwd()
+
+        data_dir = root_dir / "data" / "edges_df.csv"
 
     return data_dir
 
 
-def setting_default_out_dir():
+def setting_default_out_dir(assigment=4):
     """Setting a default Output directory
 
     Returns:
         PosixPath: Output directory
     """
-    root_dir = Path.cwd()  # Setting root directory.
 
-    out_dir = root_dir / "out"  # Setting data directory.
+    if assigment == 3:
 
-    return out_dir
+        root_dir = Path.cwd()  # Setting root directory.
 
+        out_dir = root_dir / "out"  # Setting data directory.
+
+        return out_dir
+
+    if assigment == 4:
+
+        root_dir = Path.cwd()
+
+        graph_out_dir = root_dir / "viz"
+
+        data_out_dir = root_dir / "out"  # I am terribly sorry Ross, but I will call the output directory 'out' instead of 'output'. Don't dump me, please.
+
+        return graph_out_dir, data_out_dir
 
 def get_filepaths_from_data_dir(data_dir, file_extension="*.txt"):
     """Creates a list containing paths to filenames in a data directoryl

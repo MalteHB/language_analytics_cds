@@ -3,3 +3,7 @@ numpy==1.19.4
 spacy==2.3.5
 spacytextblob
 matplotlib
+networkx
+
+#conda install -c alubbock pygraphviz
+#conda install --name cds ipykernel -y
