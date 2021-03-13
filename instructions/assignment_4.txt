@@ -1,0 +1,16 @@
+# Clone the GitHub
+git clone https://github.com/MalteHB/language_analytics_cds.git
+cd language_analytics_cds 
+
+# Install anaconda for your OS. See https://docs.anaconda.com/anaconda/install/
+
+# Create and activate conda environment:
+conda create -n cds python=3.8
+conda activate cds
+
+# Install requirements
+pip install -r requirements.txt
+
+# Run the network analysis script 
+# If you want to, you can reduce runtime by setting the argument --nrows
+python src/network.py

@@ -36,9 +36,9 @@ def main(args):
 
 
 class NetworkAnalysis:
-    """Calculates the sentiment scores for a given .csv file.
+    """Do some awesome network analysis.
 
-    Outputs plots of rolling averages across weeks and months.
+    Outputs a graph-plot of a given edgelist as well as a dataframe with centrality measures.
     """
 
     def __init__(self,
