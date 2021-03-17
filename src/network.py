@@ -96,19 +96,19 @@ class NetworkAnalysis:
         self.calculate_centrality_measures(graph,
                                            save_df=self.save_df)
 
-    
+
     def create_network_graph(self, edges_df, min_edge_weight=500, save_graph=True):
-        
+
         # Filter from minimum edge weight
 
         filtered_edges_df = edges_df[edges_df["weight"] > min_edge_weight]  # Filter from minimum edge weight
 
         # Create graph
 
-        graph = nx.from_pandas_edgelist(filtered_edges_df, 'nodeA', 'nodeB', ["weight"])        
+        graph = nx.from_pandas_edgelist(filtered_edges_df, 'nodeA', 'nodeB', ["weight"])
 
         pos = nx.spring_layout(graph)
-        
+
         nx.draw(graph, pos, with_labels=True, node_size=10, font_size=10)
 
         # Save graph
@@ -123,7 +123,7 @@ class NetworkAnalysis:
 
     def calculate_centrality_measures(self, graph, save_df=True):
 
-        # Calculate centrality metrics 
+        # Calculate centrality metrics
 
         degree = nx.degree_centrality(graph)
 
@@ -137,7 +137,7 @@ class NetworkAnalysis:
             'nodes': list(degree.keys()),
             'degree': list(degree.values()),
             'betweenness': list(betweenness.values()),
-            'eigenvector': list(eigenvector.values()),  
+            'eigenvector': list(eigenvector.values()),
         }).sort_values([
             'degree',
             'betweenness',
