@@ -25,7 +25,7 @@ def setting_default_data_dir(assigment=4):
     return data_dir
 
 
-def setting_default_out_dir(assigment=4):
+def setting_default_out_dir(assigment=5):
     """Setting a default Output directory
 
     Returns:
@@ -49,6 +49,15 @@ def setting_default_out_dir(assigment=4):
         data_out_dir = root_dir / "out"  # I am terribly sorry Ross, but I will call the output directory 'out' instead of 'output'. Don't dump me, please.
 
         return graph_out_dir, data_out_dir
+
+    if assigment == 5:
+
+        root_dir = Path.cwd()
+
+        model_out_dir = root_dir / "models"
+
+        return model_out_dir
+
 
 def get_filepaths_from_data_dir(data_dir, file_extension="*.txt"):
     """Creates a list containing paths to filenames in a data directoryl
