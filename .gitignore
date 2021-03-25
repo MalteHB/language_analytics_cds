@@ -130,3 +130,6 @@ dmypy.json
 
 # Visual studio code
 .vscode/
+
+# HuggingFace Trainer outputs
+*/checkpoint*
