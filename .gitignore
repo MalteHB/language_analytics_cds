@@ -133,3 +133,4 @@ dmypy.json
 
 # HuggingFace Trainer outputs
 **/checkpoint*
+**/test-*
