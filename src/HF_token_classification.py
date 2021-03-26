@@ -6,7 +6,7 @@ import argparse
 import torch
 import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModelForTokenClassification, DataCollatorForTokenClassification, TrainingArguments, Trainer, logging
-from datasets import load_dataset, load_metric
+import datasets
 import numpy as np
 
 from utils.utils import setting_default_out_dir
@@ -36,7 +36,9 @@ def main(args):
 
     sentence = args.s
 
-    train_model = args.tm
+    train_model = args.train
+
+    test_model = args.test
 
     HFNER = HuggingFaceNamedEntityClassification(dataset=dataset,
                                                  language=language,
@@ -49,13 +51,23 @@ def main(args):
 
     if train_model:
 
+        HFNER.setup_training()
+
         HFNER.train_model()
 
         HFNER.evaluate_model()
 
+        HFNER.test_model()
+
         if save_model:
 
             HFNER.save_model()
+
+    if test_model:
+
+        HFNER.setup_training()
+
+        HFNER.test_model()
 
     if sentence is None:
 
@@ -143,20 +155,22 @@ class HuggingFaceNamedEntityClassification():
 
         if self.hf_model_path == "Maltehb/-l-ctra-danish-electra-small-cased":
 
-            self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model_path, do_lower_case=False, strip_accents=False)
+            self.strip_accents = False
 
         else:
 
-            self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model_path, do_lower_case=False)
+            self.strip_accents = True
+
+        logging.set_verbosity_error()
+        datasets.logging.set_verbosity_error()
+        self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model_path, do_lower_case=False, strip_accents=self.strip_accents)
 
         self.train, self.val, self.test = self.load_and_preprocess_hf_dataset(self.dataset)
 
         self.label_list = self.train.features[f"{self.task}_tags"].feature.names
-        logging.set_verbosity_error()
+
         self.model = AutoModelForTokenClassification.from_pretrained(self.hf_model_path, num_labels=len(self.label_list))
         logging.set_verbosity_warning()
-        self.args, self.data_collator, self.metric, self.trainer = self.setup_training(self.batch_size, self.learning_rate, self.epochs)
-
 
 
 
@@ -167,7 +181,7 @@ class HuggingFaceNamedEntityClassification():
             Dataset: Training, validation and test dataset.
         """
         # Loading dane
-        datasets = load_dataset(dataset)
+        hf_datasets = datasets.load_dataset(dataset)
 
         def _tokenize_and_align_labels(examples):
 
@@ -201,27 +215,27 @@ class HuggingFaceNamedEntityClassification():
             return tokenized_inputs
 
         # Applying a tokenization function on the entire dataset
-        tokenized_datasets = datasets.map(_tokenize_and_align_labels, batched=True)
+        tokenized_datasets = hf_datasets.map(_tokenize_and_align_labels, batched=True)
 
         train, val, test = tokenized_datasets["train"], tokenized_datasets["validation"], tokenized_datasets["test"]
 
         return train, val, test
 
-    def setup_training(self, batch_size, learning_rate, epochs):
+    def setup_training(self):
 
-        args = TrainingArguments(
+        self.args = TrainingArguments(
             f"test-{self.task}",
             evaluation_strategy="epoch",
-            learning_rate=learning_rate,
-            per_device_train_batch_size=batch_size,
-            per_device_eval_batch_size=batch_size,
-            num_train_epochs=epochs,
+            learning_rate=self.learning_rate,
+            per_device_train_batch_size=self.batch_size,
+            per_device_eval_batch_size=self.batch_size,
+            num_train_epochs=self.epochs,
             weight_decay=0.01,
         )
 
-        data_collator = DataCollatorForTokenClassification(self.tokenizer)
+        self.data_collator = DataCollatorForTokenClassification(self.tokenizer)
 
-        metric = load_metric("seqeval")
+        self.metric = datasets.load_metric("seqeval")
 
         def _compute_metrics(pred):
 
@@ -246,25 +260,80 @@ class HuggingFaceNamedEntityClassification():
                 "accuracy": results["overall_accuracy"],
             }
 
-        trainer = Trainer(
+        self.trainer = Trainer(
             self.model,
-            args,
+            self.args,
             train_dataset=self.train,
             eval_dataset=self.val,
-            data_collator=data_collator,
+            data_collator=self.data_collator,
             tokenizer=self.tokenizer,
             compute_metrics=_compute_metrics
         )
 
-        return args, data_collator, metric, trainer
+        return self.trainer
 
     def train_model(self):
 
         self.trainer.train()
 
+    def test_model(self):
+
+        def _compute_metrics(pred):
+
+            predictions, labels = pred
+            predictions = np.argmax(predictions, axis=2)
+
+            # Remove ignored index (special tokens)
+            true_predictions = [
+                [self.label_list[pred] for (pred, lab) in zip(prediction, label) if lab != -100]
+                for prediction, label in zip(predictions, labels)
+            ]
+            true_labels = [
+                [self.label_list[lab] for (pred, lab) in zip(prediction, label) if lab != -100]
+                for prediction, label in zip(predictions, labels)
+            ]
+
+            results = self.metric.compute(predictions=true_predictions, references=true_labels)
+            return {
+                "precision": results["overall_precision"],
+                "recall": results["overall_recall"],
+                "f1": results["overall_f1"],
+                "accuracy": results["overall_accuracy"],
+            }
+
+        logging.set_verbosity_error()
+        model = AutoModelForTokenClassification.from_pretrained(self.local_model_path)
+        logging.set_verbosity_warning()
+
+        trainer = Trainer(
+            model,
+            self.args,
+            train_dataset=self.train,
+            eval_dataset=self.val,
+            data_collator=self.data_collator,
+            tokenizer=self.tokenizer,
+            compute_metrics=_compute_metrics
+        )
+
+        predictions, labels, _ = trainer.predict(self.test)
+        predictions = np.argmax(predictions, axis=2)
+
+        # Remove ignored index (special tokens)
+        true_predictions = [
+            [self.label_list[pred] for (pred, lab) in zip(prediction, label) if lab != -100]
+            for prediction, label in zip(predictions, labels)
+        ]
+        true_labels = [
+            [self.label_list[lab] for (pred, lab) in zip(prediction, label) if lab != -100]
+            for prediction, label in zip(predictions, labels)
+        ]
+
+        results = self.metric.compute(predictions=true_predictions, references=true_labels)
+        print(results)
+
     def evaluate_model(self):
 
-        self.trainer.evaluate()
+        print(self.trainer.evaluate())
 
     def save_model(self, local_model_path=None):
 
@@ -338,11 +407,9 @@ class HuggingFaceNamedEntityClassification():
 
                         new_probs.append(probs)
 
-        preds_dict = {"word": new_tokens,
-                      "tag": new_labels,
-                      "probability": new_probs}
-
-        print(f"Here is a dictionary containing the tokens, labels and probabilities for each NER-tag of the model:\n{preds_dict}")
+        print(f"Input Tokens: {' '.join(new_tokens)}",
+              f"\nPredicted Entities: {' '.join(new_labels)}",
+              f"\nProbabilities: {new_probs}")
 
 
 if __name__ == "__main__":
@@ -409,12 +476,19 @@ if __name__ == "__main__":
                         help='Sentence to be predicted by the trained model.',
                         required=False)
 
-    parser.add_argument('--tm',
-                        metavar="Train Model",
-                        type=bool,
+    parser.add_argument('--train',
+                        dest="train",
                         help='Whether to train a model or not to',
-                        required=False,
-                        default=True)
+                        action="store_true")
+
+    parser.set_defaults(train=False)
+
+    parser.add_argument('--test',
+                        dest="test",
+                        help='Test the model',
+                        action="store_true")
+
+    parser.set_defaults(test=False)
 
 
     main(parser.parse_args())
