@@ -40,47 +40,47 @@ def main(args):
 
     test_model = args.test
 
-    HFNER = HuggingFaceNamedEntityClassification(dataset=dataset,
-                                                 language=language,
-                                                 hf_model_path=hf_model_path,
-                                                 local_model_path=local_model_path,
-                                                 batch_size=batch_size,
-                                                 learning_rate=learning_rate,
-                                                 epochs=epochs,
-                                                 task=task)  # TODO: Create download data function
+    HFTP = HuggingFaceTokenClassification(dataset=dataset,
+                                          language=language,
+                                          hf_model_path=hf_model_path,
+                                          local_model_path=local_model_path,
+                                          batch_size=batch_size,
+                                          learning_rate=learning_rate,
+                                          epochs=epochs,
+                                          task=task)  # TODO: Create download data function
 
     if train_model:
 
-        HFNER.setup_training()
+        HFTP.setup_training()
 
-        HFNER.train_model()
+        HFTP.train_model()
 
-        HFNER.evaluate_model()
+        HFTP.evaluate_model()
 
-        HFNER.test_model()
+        HFTP.test_model()
 
         if save_model:
 
-            HFNER.save_model()
+            HFTP.save_model()
 
     if test_model:
 
-        HFNER.setup_training()
+        HFTP.setup_training()
 
-        HFNER.test_model()
+        HFTP.test_model()
 
     if sentence is None:
 
-        HFNER.predict(model_path=local_model_path, sentence="Ross Deans Kristensen-McLachlan er en dejlig mand. Han arbejder for Aarhus Universitet, og bor i Aarhus.")
+        HFTP.predict(model_path=local_model_path, sentence="Ross Deans Kristensen-McLachlan er en dejlig mand. Han arbejder for Aarhus Universitet, og bor i Aarhus.")
 
     else:
 
-        HFNER.predict(model_path=local_model_path, sentence=sentence)
+        HFTP.predict(model_path=local_model_path, sentence=sentence)
 
     print("DONE! Have a nice day. :-)")
 
 
-class HuggingFaceNamedEntityClassification():
+class HuggingFaceTokenClassification():
     """Takes any Danish or English token classification dataset
        from the HuggingFace's datasets-package and trains
        a small ELECTRA-model capable of predicting tokens.
