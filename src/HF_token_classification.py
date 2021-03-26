@@ -71,7 +71,7 @@ def main(args):
 
     if sentence is None:
 
-        HFNER.predict(model_path=local_model_path, sentence="Ross Deans Kristensen-McLachlan er en dejlig mand, arbejder for Aarhus Universitet, og bor i Aarhus.")
+        HFNER.predict(model_path=local_model_path, sentence="Ross Deans Kristensen-McLachlan er en dejlig mand. Han arbejder for Aarhus Universitet, og bor i Aarhus.")
 
     else:
 
@@ -360,7 +360,7 @@ class HuggingFaceNamedEntityClassification():
         else:
 
             tokenizer = AutoTokenizer.from_pretrained(model_path, do_lower_case=False)
-        
+
         logging.set_verbosity_error()
         model = AutoModelForTokenClassification.from_pretrained(model_path)
         logging.set_verbosity_warning()
