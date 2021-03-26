@@ -57,11 +57,11 @@ def main(args):
 
         HFTP.evaluate_model()
 
-        HFTP.test_model()
-
         if save_model:
 
             HFTP.save_model()
+
+        HFTP.test_model()
 
     if test_model:
 

@@ -26,7 +26,35 @@ pip install -r requirements.txt
 
 ```
 
+## Assignment 5 - (Un)Supervised Machine Learning
 
+### Project Description
+For the fifth assignment of the Language Analytics course a short research project was tasked. 
+
+Since i have delved into both unsupervised and supervised machine learning prior to attending the course, i chose that i wanted to investigate a possible framework to use for text classification. Specifically i wanted to investigate the capabilities of [HuggingFace's](https://huggingface.co/) [Trainer](https://huggingface.co/transformers/main_classes/trainer.html) class in a token classification setup. Furthermore, i wanted to do it for Danish, since Danish currently stands in a  technological disadvantageous position compared to bigger languages such as English. 
+
+For Danish token classification there is, to my knowledge, only one dataset, namely [DaNE](https://www.aclweb.org/anthology/2020.lrec-1.565/). This dataset follows the CoNLL-2003 annotation scheme and does therefore encompass several token classification tasks. 
+
+The token classification task i chose to test was Named Entity Recognition (NER) and the script can be seen [here](src/HF_token_classification.py). The script is a wrapper for the [Trainer](https://huggingface.co/transformers/main_classes/trainer.html) class, and what is clever about the [Trainer](https://huggingface.co/transformers/main_classes/trainer.html) class is that is comes with all sorts of auto hyperparameter optimization during training. I, therefore, wanted to see whether it was possible to achieve similar F1-scores when using the [Trainer](https://huggingface.co/transformers/main_classes/trainer.html) class and a Danish transformer-based model, [Ælæctra](https://github.com/MalteHB/-l-ctra) class compared to the F1-scores reported in the [Ælæctra repository](https://github.com/MalteHB/-l-ctra). 
+
+Using the [Trainer](https://huggingface.co/transformers/main_classes/trainer.html) class I managed, through multiple trainings, to achieve F1-scores ranging between 77 and 80 on the predefined testset from [DaNE](https://www.aclweb.org/anthology/2020.lrec-1.565/). I think that the [Trainer](https://huggingface.co/transformers/main_classes/trainer.html) class, therefore, serves as a promising tool to use, when wanting to employ more automated supervised machine learning, and the future for NLP in general seems bright. 
+
+### Script Usage
+Start of by cloning this repository and creating a virtual environment with the requirements installed. See the [Technicalities](##Technicalities) section to see how this is done using Anaconda.
+
+After initializing your own environment you can run the train a state-of-the-art Danish NER model from a command-line by using the following command:
+
+```bash
+python .\src\HF_token_classification.py --train
+```
+
+Once trained you can predict a sentence of your choice by using the '--s' flag. :
+
+```bash
+python .\src\HF_token_classification.py --s Ross er en dejlig mand, som kommer fra Skotland, og underviser på Aarhus Universitet.
+```
+
+For a list of capabilities use the '--help' flag.
 ## Repo structure
 
 This repository has the following directory structure:
