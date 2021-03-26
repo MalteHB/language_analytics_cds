@@ -51,9 +51,13 @@ def main(args):
 
     if train_model:
 
+        print("\n\nINITIALISING TRAINING!")
+
         HFTP.setup_training()
 
         HFTP.train_model()
+
+        print("\n\nINITIALISING EVALUATION ON VALIDATION DATASET!")
 
         HFTP.evaluate_model()
 
@@ -61,9 +65,13 @@ def main(args):
 
             HFTP.save_model()
 
+        print("\n\nINITIALISING EVALUATION ON TEST DATASET!")
+
         HFTP.test_model()
 
     if test_model:
+
+        print("\n\nINITIALISING EVALUATION ON TEST DATASET!")
 
         HFTP.setup_training()
 
@@ -71,13 +79,18 @@ def main(args):
 
     if sentence is None:
 
-        HFTP.predict(model_path=local_model_path, sentence="Ross Deans Kristensen-McLachlan er en dejlig mand. Han arbejder for Aarhus Universitet, og bor i Aarhus.")
+        sentence = "Ross er en dejlig mand, som kommer fra Skotland, og underviser på Aarhus Universitet."
 
-    else:
+        print(f"\n\nINITIALISING PREDICTION OF STANDARD SENTENCE: '{sentence}'")
 
         HFTP.predict(model_path=local_model_path, sentence=sentence)
 
-    print("DONE! Have a nice day. :-)")
+    else:
+        print(f"\n\nINITIALISING PREDICTION OF INPUT SENTENCE: '{sentence}'")
+
+        HFTP.predict(model_path=local_model_path, sentence=sentence)
+
+    print("\nDONE! Have a nice day. :-)")
 
 
 class HuggingFaceTokenClassification():
@@ -407,9 +420,9 @@ class HuggingFaceTokenClassification():
 
                         new_probs.append(probs)
 
-        print(f"Input Tokens: {' '.join(new_tokens)}",
-              f"\nPredicted Entities: {' '.join(new_labels)}",
-              f"\nProbabilities: {new_probs}")
+        print(f"\n\nInput Tokens: {' '.join(new_tokens)}",
+              f"\n\nPredicted Entities: {' '.join(new_labels)}",
+              f"\n\nProbabilities: {new_probs}")
 
 
 if __name__ == "__main__":
