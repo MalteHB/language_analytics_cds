@@ -47,7 +47,7 @@ def main(args):
                                           batch_size=batch_size,
                                           learning_rate=learning_rate,
                                           epochs=epochs,
-                                          task=task)  # TODO: Create download data function
+                                          task=task) 
 
     if train_model:
 
@@ -110,6 +110,7 @@ class HuggingFaceTokenClassification():
                  task="ner"
                  ):
 
+        # Assigning variables to the HuggingFaceTokenClassification class.
         self.hf_model_path = hf_model_path
 
         self.local_model_path = local_model_path
@@ -173,14 +174,14 @@ class HuggingFaceTokenClassification():
         else:
 
             self.strip_accents = True
-
-        logging.set_verbosity_error()
-        datasets.logging.set_verbosity_error()
+            
+        logging.set_verbosity_error() # Decreasing verbosity
+        datasets.logging.set_verbosity_error() # Decreasing verbosity
         self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model_path, do_lower_case=False, strip_accents=self.strip_accents)
 
-        self.train, self.val, self.test = self.load_and_preprocess_hf_dataset(self.dataset)
+        self.train, self.val, self.test = self.load_and_preprocess_hf_dataset(self.dataset) # Loading and preprocessing data
 
-        self.label_list = self.train.features[f"{self.task}_tags"].feature.names
+        self.label_list = self.train.features[f"{self.task}_tags"].feature.names # Creating a list of labels from the training dataset
 
         self.model = AutoModelForTokenClassification.from_pretrained(self.hf_model_path, num_labels=len(self.label_list))
         logging.set_verbosity_warning()
@@ -194,9 +195,18 @@ class HuggingFaceTokenClassification():
             Dataset: Training, validation and test dataset.
         """
         # Loading dane
-        hf_datasets = datasets.load_dataset(dataset)
+        hf_datasets = datasets.load_dataset(dataset) # Loading dataset
+        
 
         def _tokenize_and_align_labels(examples):
+            """Tokenizes and aligns the labels. Adopted from:https://github.com/huggingface/notebooks/blob/master/examples/token_classification.ipynb
+
+            Args:
+                examples (dataset): Dataset from the datasets library.
+
+            Returns:
+                dict: A dictionary of data.
+            """
 
             label_all_tokens = True
 
@@ -235,6 +245,11 @@ class HuggingFaceTokenClassification():
         return train, val, test
 
     def setup_training(self):
+        """Function for setting up different training and data arguments.
+
+        Returns:
+            Trainer: A Trainer class from the transformers library.
+        """
 
         self.args = TrainingArguments(
             f"test-{self.task}",
@@ -251,6 +266,14 @@ class HuggingFaceTokenClassification():
         self.metric = datasets.load_metric("seqeval")
 
         def _compute_metrics(pred):
+            """Computes metrics from predictions. Adopted from: https://github.com/huggingface/notebooks/blob/master/examples/token_classification.ipynb
+
+            Args:
+                pred (Dict): Predictions from the Trainer.evaluate() 
+
+            Returns:
+                results_dict [Dict]: A dictionary containing the different metrics.
+            """
 
             predictions, labels = pred
             predictions = np.argmax(predictions, axis=2)
@@ -266,12 +289,14 @@ class HuggingFaceTokenClassification():
             ]
 
             results = self.metric.compute(predictions=true_predictions, references=true_labels)
-            return {
+
+            results_dict = {
                 "precision": results["overall_precision"],
                 "recall": results["overall_recall"],
                 "f1": results["overall_f1"],
                 "accuracy": results["overall_accuracy"],
             }
+            return results_dict
 
         self.trainer = Trainer(
             self.model,
@@ -290,8 +315,18 @@ class HuggingFaceTokenClassification():
         self.trainer.train()
 
     def test_model(self):
+        """Tests the trained model on the test dataset.
+        """
 
         def _compute_metrics(pred):
+            """Computes metrics from predictions. Adopted from: https://github.com/huggingface/notebooks/blob/master/examples/token_classification.ipynb
+
+            Args:
+                pred (Dict): Predictions from the Trainer.evaluate() 
+
+            Returns:
+                results_dict [Dict]: A dictionary containing the different metrics.
+            """
 
             predictions, labels = pred
             predictions = np.argmax(predictions, axis=2)
@@ -307,12 +342,13 @@ class HuggingFaceTokenClassification():
             ]
 
             results = self.metric.compute(predictions=true_predictions, references=true_labels)
-            return {
+            results_dict = {
                 "precision": results["overall_precision"],
                 "recall": results["overall_recall"],
                 "f1": results["overall_f1"],
                 "accuracy": results["overall_accuracy"],
             }
+            return results_dict
 
         logging.set_verbosity_error()
         model = AutoModelForTokenClassification.from_pretrained(self.local_model_path)
@@ -349,6 +385,11 @@ class HuggingFaceTokenClassification():
         print(self.trainer.evaluate())
 
     def save_model(self, local_model_path=None):
+        """Saves the model
+
+        Args:
+            local_model_path (str, optional): Path to the local model directory. Defaults to None.
+        """
 
         if local_model_path is None:
 
@@ -365,14 +406,18 @@ class HuggingFaceTokenClassification():
         if model_path is None:
 
             model_path = self.local_model_path
+            
+        # Getting tokenizer
 
         if self.language == "danish":
-
+            
             tokenizer = AutoTokenizer.from_pretrained(model_path, do_lower_case=False, strip_accents=False)
 
         else:
 
             tokenizer = AutoTokenizer.from_pretrained(model_path, do_lower_case=False)
+            
+        # Getting model with temporary decreased verbosity
 
         logging.set_verbosity_error()
         model = AutoModelForTokenClassification.from_pretrained(model_path)
@@ -380,28 +425,30 @@ class HuggingFaceTokenClassification():
 
         # Preprocessing sentence
         tokenized_sentence = tokenizer.encode(sentence, add_special_tokens=True)
-
+        
+        # Creating a torch tensor
         input_ids = torch.tensor([tokenized_sentence])
 
-        # Getting predictions from the model
+        # Getting predictions from the model with no adjustment of weights
         with torch.no_grad():
 
             logits = model(input_ids)
 
-        logits = F.softmax(logits[0], dim=2)
+        logits = F.softmax(logits[0], dim=2) # Applying softmax
 
-        logits_label = torch.argmax(logits, dim=2)
+        logits_label = torch.argmax(logits, dim=2) # Getting highest softmax
 
-        logits_label = logits_label.detach().cpu().numpy().tolist()[0]
+        logits_label = logits_label.detach().cpu().numpy().tolist()[0] # Convert labels to list
 
-        logits_confidence = [values[label].item() for values, label in zip(logits[0], logits_label)]
+        logits_confidence = [values[label].item() for values, label in zip(logits[0], logits_label)] # Getting the probabilities of the model
 
 
         # Joining tokens, tags and confidence probabilities of the model
-        tokens = tokenizer.convert_ids_to_tokens(input_ids.to('cpu').numpy()[0])
+        tokens = tokenizer.convert_ids_to_tokens(input_ids.to('cpu').numpy()[0]) # Converting the indeces to tokens
 
         new_tokens, new_labels, new_probs = [], [], []
 
+        # Collapsing tokens from word piece tokenization to actual tokens. 
         for token, label_idx, probs in zip(tokens, logits_label, logits_confidence):
 
             if token.startswith("##"):
