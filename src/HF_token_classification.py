@@ -47,7 +47,7 @@ def main(args):
                                           batch_size=batch_size,
                                           learning_rate=learning_rate,
                                           epochs=epochs,
-                                          task=task) 
+                                          task=task)
 
     if train_model:
 
@@ -117,7 +117,7 @@ class HuggingFaceTokenClassification():
 
         if self.local_model_path is None:
 
-            self.local_model_path = setting_default_out_dir()
+            self.local_model_path = setting_default_out_dir(assigmment=5)
 
         self.language = language
 
@@ -174,14 +174,14 @@ class HuggingFaceTokenClassification():
         else:
 
             self.strip_accents = True
-            
-        logging.set_verbosity_error() # Decreasing verbosity
-        datasets.logging.set_verbosity_error() # Decreasing verbosity
+
+        logging.set_verbosity_error()  # Decreasing verbosity
+        datasets.logging.set_verbosity_error()  # Decreasing verbosity
         self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model_path, do_lower_case=False, strip_accents=self.strip_accents)
 
-        self.train, self.val, self.test = self.load_and_preprocess_hf_dataset(self.dataset) # Loading and preprocessing data
+        self.train, self.val, self.test = self.load_and_preprocess_hf_dataset(self.dataset)  # Loading and preprocessing data
 
-        self.label_list = self.train.features[f"{self.task}_tags"].feature.names # Creating a list of labels from the training dataset
+        self.label_list = self.train.features[f"{self.task}_tags"].feature.names  # Creating a list of labels from the training dataset
 
         self.model = AutoModelForTokenClassification.from_pretrained(self.hf_model_path, num_labels=len(self.label_list))
         logging.set_verbosity_warning()
@@ -195,8 +195,7 @@ class HuggingFaceTokenClassification():
             Dataset: Training, validation and test dataset.
         """
         # Loading dane
-        hf_datasets = datasets.load_dataset(dataset) # Loading dataset
-        
+        hf_datasets = datasets.load_dataset(dataset)  # Loading dataset
 
         def _tokenize_and_align_labels(examples):
             """Tokenizes and aligns the labels. Adopted from:https://github.com/huggingface/notebooks/blob/master/examples/token_classification.ipynb
@@ -269,7 +268,7 @@ class HuggingFaceTokenClassification():
             """Computes metrics from predictions. Adopted from: https://github.com/huggingface/notebooks/blob/master/examples/token_classification.ipynb
 
             Args:
-                pred (Dict): Predictions from the Trainer.evaluate() 
+                pred (Dict): Predictions from the Trainer.evaluate()
 
             Returns:
                 results_dict [Dict]: A dictionary containing the different metrics.
@@ -434,17 +433,17 @@ class HuggingFaceTokenClassification():
 
             logits = model(input_ids)
 
-        logits = F.softmax(logits[0], dim=2) # Applying softmax
+        logits = F.softmax(logits[0], dim=2)  # Applying softmax
 
-        logits_label = torch.argmax(logits, dim=2) # Getting highest softmax
+        logits_label = torch.argmax(logits, dim=2)  # Getting highest softmax
 
-        logits_label = logits_label.detach().cpu().numpy().tolist()[0] # Convert labels to list
+        logits_label = logits_label.detach().cpu().numpy().tolist()[0]  # Convert labels to list
 
-        logits_confidence = [values[label].item() for values, label in zip(logits[0], logits_label)] # Getting the probabilities of the model
+        logits_confidence = [values[label].item() for values, label in zip(logits[0], logits_label)]  # Getting the probabilities of the model
 
 
         # Joining tokens, tags and confidence probabilities of the model
-        tokens = tokenizer.convert_ids_to_tokens(input_ids.to('cpu').numpy()[0]) # Converting the indeces to tokens
+        tokens = tokenizer.convert_ids_to_tokens(input_ids.to('cpu').numpy()[0])  # Converting the indeces to tokens
 
         new_tokens, new_labels, new_probs = [], [], []
 

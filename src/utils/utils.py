@@ -25,14 +25,14 @@ def setting_default_data_dir(assigment=4):
     return data_dir
 
 
-def setting_default_out_dir(assigment=5):
+def setting_default_out_dir(assignment=5):
     """Setting a default Output directory
 
     Returns:
         PosixPath: Output directory
     """
 
-    if assigment == 3:
+    if assignment == 3:
 
         root_dir = Path.cwd()  # Setting root directory.
 
@@ -40,7 +40,7 @@ def setting_default_out_dir(assigment=5):
 
         return out_dir
 
-    if assigment == 4:
+    if assignment == 4:
 
         root_dir = Path.cwd()
 
@@ -50,13 +50,29 @@ def setting_default_out_dir(assigment=5):
 
         return graph_out_dir, data_out_dir
 
-    if assigment == 5:
+    if assignment == 5:
 
         root_dir = Path.cwd()
 
         model_out_dir = root_dir / "models"
 
         return model_out_dir
+
+    if assignment == 5:
+
+        root_dir = Path.cwd()
+
+        model_out_dir = root_dir / "models"
+
+        return model_out_dir
+
+    if assignment == 6:
+
+        root_dir = Path.cwd()  # Setting root directory.
+
+        out_dir = root_dir / "out"  # Setting data directory.
+
+        return out_dir
 
 
 def get_filepaths_from_data_dir(data_dir, file_extension="*.txt"):

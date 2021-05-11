@@ -137,3 +137,8 @@ dmypy.json
 
 # Models
 models/
+data/netflix_titles.csv
+data/ml_papers/authors.csv
+data/ml_papers/papers.csv
+notebooks/Transformers_Topic_modelling.ipynb
+notebooks/BERTopic_modelling.ipynb
