@@ -7,6 +7,8 @@ from pathlib import Path
 import pandas as pd
 import argparse
 
+from utils.utils import setting_default_out_dir
+
 
 def main(args):
 
@@ -37,9 +39,11 @@ class WordCounts:
                                        total_words=total_words,
                                        unique_words=unique_words)
 
-        dataframe_path = "word_counts.csv"
+        dataframe_path = setting_default_out_dir(assignment=1)
+        
+        dataframe_path = dataframe_path / "word_counts.csv"
 
-        df.to_csv(dataframe_path)  # Writing data to csv.
+        df.to_csv(str(dataframe_path))  # Writing data to csv.
 
         print(f"DONE! Created the file: '{dataframe_path}'. Have a nice day. :-)")
 
