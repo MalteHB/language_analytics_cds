@@ -11,6 +11,9 @@ conda activate cds
 # Install requirements
 pip install -r requirements.txt
 
+# Download the english language model from spacy
+python -m spacy download en_core_web_sm
+
 # Run the sentiment script 
 # If you want to, you can reduce runtime by setting the argument --nrows
 python src/sentiment.py

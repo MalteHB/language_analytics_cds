@@ -12,5 +12,4 @@ conda activate cds
 pip install -r requirements.txt
 
 # Run the network analysis script 
-# If you want to, you can reduce runtime by setting the argument --nrows
 python src/network.py

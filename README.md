@@ -24,6 +24,9 @@ conda activate cds
 # Install requirements
 pip install -r requirements.txt
 
+# Download the English language model from spaCy
+python -m spacy download en_core_web_sm
+
 ```
 
 ## Assignment 5 - (Un)Supervised Machine Learning

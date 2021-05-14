@@ -142,3 +142,4 @@ models/
 notebooks/Transformers_Topic_modelling.ipynb
 notebooks/BERTopic_modelling.ipynb
 
+runs/*
