@@ -10,6 +10,12 @@ def setting_default_data_dir(assigment=4):
         PosixPath: Data directory
     """
 
+    if assigment == 2:
+    
+        root_dir = Path.cwd()  # Setting root directory.
+
+        data_dir = root_dir / "data" / "100_english_novels" / "corpus"  # Setting data directory.
+
     if assigment == 3:
 
         root_dir = Path.cwd()  # Setting root directory.
@@ -32,16 +38,8 @@ def setting_default_out_dir(assignment=5):
         PosixPath: Output directory
     """
 
-    if assignment == 1:
+    if assignment in (1, 2, 3, 6):
     
-        root_dir = Path.cwd()  # Setting root directory.
-
-        out_dir = root_dir / "out"  # Setting data directory.
-
-        return out_dir
-
-    if assignment == 3:
-
         root_dir = Path.cwd()  # Setting root directory.
 
         out_dir = root_dir / "out"  # Setting data directory.
@@ -52,9 +50,9 @@ def setting_default_out_dir(assignment=5):
 
         root_dir = Path.cwd()
 
-        graph_out_dir = root_dir / "viz"
+        graph_out_dir = root_dir / "out" / "viz"
 
-        data_out_dir = root_dir / "out"  # I am terribly sorry Ross, but I will call the output directory 'out' instead of 'output'. Don't dump me, please.
+        data_out_dir = root_dir / "out"
 
         return graph_out_dir, data_out_dir
 
@@ -65,23 +63,6 @@ def setting_default_out_dir(assignment=5):
         model_out_dir = root_dir / "models"
 
         return model_out_dir
-
-    if assignment == 5:
-
-        root_dir = Path.cwd()
-
-        model_out_dir = root_dir / "models"
-
-        return model_out_dir
-
-    if assignment == 6:
-
-        root_dir = Path.cwd()  # Setting root directory.
-
-        out_dir = root_dir / "out"  # Setting data directory.
-
-        return out_dir
-
 
 def get_filepaths_from_data_dir(data_dir, file_extension="*.txt"):
     """Creates a list containing paths to filenames in a data directoryl
