@@ -117,7 +117,7 @@ class HuggingFaceTokenClassification():
 
         if self.local_model_path is None:
 
-            self.local_model_path = setting_default_out_dir(assigmment=5)
+            self.local_model_path = setting_default_out_dir(assignment=5)
 
         self.language = language
 

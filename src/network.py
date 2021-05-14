@@ -67,9 +67,9 @@ class NetworkAnalysis:
 
         if self.graph_out_dir is None:
 
-            self.graph_out_dir, self.data_out_dir = setting_default_out_dir()  # Setting default output directory.
+            self.graph_out_dir, self.data_out_dir = setting_default_out_dir(assignment=4)  # Setting default output directory.
 
-            print(f"\nOutput directory is not specified.\nSetting it to '{self.graph_out_dir}'.")
+            print(f"\nGraph output directory is not specified.\nSetting it to '{self.graph_out_dir}'.")
 
             print(f"\nOutput directory is not specified.\nSetting it to '{self.data_out_dir}'.")
 

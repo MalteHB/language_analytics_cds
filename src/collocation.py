@@ -40,7 +40,7 @@ class Collocation:
 
         if self.data_dir is None:
 
-            self.data_dir = setting_default_data_dir()  # Setting default data directory.
+            self.data_dir = setting_default_data_dir(assigment=2)  # Setting default data directory.
 
             print(f"\nData directory is not specified.\nSetting it to '{self.data_dir}'.")
 
@@ -48,7 +48,7 @@ class Collocation:
 
         if self.out_dir is None:
 
-            self.out_dir = setting_default_out_dir()  # Setting default output directory.
+            self.out_dir = setting_default_out_dir(assignment=2)  # Setting default output directory.
 
             print(f"\nOutput directory is not specified.\nSetting it to '{self.out_dir}'.")
 
@@ -230,6 +230,14 @@ class Collocation:
 
 
     def tokenize(self, input_string):
+        """Tokenizes text by whitespaces
+
+        Args:
+            input_string (str): Input string of text
+
+        Returns:
+            list: List of tokens from the input string
+        """
 
         # Split on any non-alphanumeric character
         tokenizer = re.compile(r"\W+")

@@ -72,7 +72,7 @@ class Sentiment:
 
         if self.data_dir is None:
 
-            self.data_dir = setting_default_data_dir()  # Setting default data directory.
+            self.data_dir = setting_default_data_dir(assigment=3)  # Setting default data directory.
 
             print(f"\nData directory is not specified.\nSetting it to '{self.data_dir}'.")
 
@@ -80,7 +80,7 @@ class Sentiment:
 
         if self.out_dir is None:
 
-            self.out_dir = setting_default_out_dir()  # Setting default output directory.
+            self.out_dir = setting_default_out_dir(assignment=3)  # Setting default output directory.
 
             print(f"\nOutput directory is not specified.\nSetting it to '{self.out_dir}'.")
 
