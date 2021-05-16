@@ -15,5 +15,6 @@ pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 
 # Run the sentiment script 
-# If you want to, you can reduce runtime by setting the argument --nrows
+# If you want to, you can reduce runtime by setting the argument --n_headlines, which 
+# specifies how many headlines from the top of the .csv file you want to load. 
 python src/sentiment.py

@@ -1,7 +1,6 @@
 #!usr/bin/env python3
 # Importing packages
 import argparse
-
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -22,6 +21,8 @@ def main(args):
     data_out_dir = args.dad
 
     min_edge_weight = args.mew
+    
+    k = args.k
 
     save_df = args.sdf
 
@@ -30,6 +31,7 @@ def main(args):
                     save_graph=save_graph,
                     data_out_dir=data_out_dir,
                     min_edge_weight=min_edge_weight,
+                    k=k,
                     save_df=save_df)
 
     print("DONE! Have a nice day. :-)")
@@ -46,7 +48,8 @@ class NetworkAnalysis:
                  graph_out_dir=None,
                  save_graph=True,
                  data_out_dir=None,
-                 min_edge_weight=500,
+                 min_edge_weight=1000,
+                 k=5,
                  save_df=True):
 
         # Setting up directories
@@ -78,6 +81,8 @@ class NetworkAnalysis:
         self.data_out_dir.mkdir(parents=True, exist_ok=True)  # Making sure output directory exists.
 
         self.min_edge_weight = min_edge_weight
+        
+        self.k = k
 
         self.save_df = save_df
 
@@ -97,7 +102,7 @@ class NetworkAnalysis:
                                            save_df=self.save_df)
 
 
-    def create_network_graph(self, edges_df, min_edge_weight=500, save_graph=True):
+    def create_network_graph(self, edges_df, min_edge_weight=1000, k=5, save_graph=True):
 
         # Filter from minimum edge weight
 
@@ -107,9 +112,9 @@ class NetworkAnalysis:
 
         graph = nx.from_pandas_edgelist(filtered_edges_df, 'nodeA', 'nodeB', ["weight"])
 
-        pos = nx.spring_layout(graph)
+        pos = nx.spring_layout(graph, k=k)
 
-        nx.draw(graph, pos, with_labels=True, node_size=10, font_size=10)
+        nx.draw(graph, pos, with_labels=True, node_size=5, font_size=8.5, width=0.3)
 
         # Save graph
 
@@ -172,7 +177,7 @@ if __name__ == "__main__":
     parser.add_argument('--sg',
                         metavar="Save graph",
                         type=bool,
-                        help='Whether to save a plot of the graph.',
+                        help='Whether to save a plot of the graph. Defaults to True.',
                         required=False,
                         default=True)
 
@@ -185,14 +190,21 @@ if __name__ == "__main__":
     parser.add_argument('--mew',
                         metavar="Minimum Edge Weight",
                         type=int,
-                        help='The minimum edge weight for the network nodes.',
+                        help='The minimum edge weight for the network nodes. Defaults to 1000.',
                         required=False,
-                        default=500)
+                        default=1000)
+    
+    parser.add_argument('--k',
+                        metavar="Optimal distance between nodes",
+                        type=int,
+                        help='Optimal distance between nodes. Increase to create more separation and decrease to create less. Defaults to 5.',
+                        required=False,
+                        default=5)
 
     parser.add_argument('--sdf',
                         metavar="Save Dataframe",
                         type=bool,
-                        help='Whether to save the dataframe of centrality measures.',
+                        help='Whether to save the dataframe of centrality measures. Defaults to True.',
                         required=False,
                         default=True)
 

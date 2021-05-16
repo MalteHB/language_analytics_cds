@@ -51,11 +51,11 @@ def main(args):
 
     out_dir = args.od
 
-    nrows = args.nrows
+    n_headlines = args.n_headlines
 
     batch_size = args.bs
 
-    Sentiment(data_dir=data_dir, out_dir=out_dir, nrows=nrows, batch_size=batch_size)
+    Sentiment(data_dir=data_dir, out_dir=out_dir, n_headlines=n_headlines, batch_size=batch_size)
 
     print("DONE! Have a nice day. :-)")
 
@@ -66,7 +66,7 @@ class Sentiment:
     Outputs plots of rolling averages across weeks and months.
     """
 
-    def __init__(self, data_dir=None, out_dir=None, nrows=None, batch_size=None):
+    def __init__(self, data_dir=None, out_dir=None, n_headlines=None, batch_size=None):
 
         self.data_dir = data_dir
 
@@ -86,25 +86,27 @@ class Sentiment:
 
         self.out_dir.mkdir(parents=True, exist_ok=True)  # Making sure output directory exists.
 
-        self.nrows = nrows
+        self.n_headlines = n_headlines
 
         self.batch_size = batch_size
 
         if self.batch_size is None:
 
-            self.batch_size = 5000
+            self.batch_size = 5000  # Setting batch size to default 5000
+            
+            print(f"\nBach size is not specified.\nSetting it to '{self.batch_size}'.")
+    
+        self.df = pd.read_csv(self.data_dir, nrows=self.n_headlines)  # Reading dataframe
+        
+        self.df_length = len(self.df)
 
-        df = pd.read_csv(self.data_dir, nrows=self.nrows)
+        self.df["polarity"] = self.calculate_polarity(text_series=self.df["headline_text"], batch_size=self.batch_size)  # Calculating the polarity of each headline and adding it as a column to the pandas dataframe
 
-        polarity = self.calculate_polarity(text_series=df["headline_text"], batch_size=self.batch_size)
+        self.df = self.df.set_index(pd.to_datetime(self.df["publish_date"], format="%Y%m%d"))  # Resetting the index of the dataframe to the dates, in order to use the rolling functionality of Pandas.
 
-        df["polarity"] = polarity
+        one_week_average = self.df.polarity.rolling("7d").mean()
 
-        df = df.set_index(pd.to_datetime(df["publish_date"], format="%Y%m%d"))  # Resetting the index of the dataframe to the dates, in order to use the rolling functionality of Pandas.
-
-        one_week_average = df.polarity.rolling("7d").mean()
-
-        one_month_average = df.polarity.rolling("30D").mean()  # Setting a month to last approximately 30 days.
+        one_month_average = self.df.polarity.rolling("30D").mean()  # Setting a month to last approximately 30 days.
 
         self.save_plot(series=one_week_average,
                        title="1-week Rolling Average Polarity of News Headlines")  # ANSWER: With the weekly rolling average we are seeing a slight decrease towards '08-'09 which could be due to the financial crisis. From there, however, it just goes slightly up.
@@ -114,6 +116,15 @@ class Sentiment:
 
 
     def calculate_polarity(self, text_series, batch_size):
+        """Calculates the polarity of a text series.
+
+        Args:
+            text_series (pandas.core.series.Series): A pandas Series of texts
+            batch_size (int): Size of each batch
+
+        Returns:
+            list: list of polarities for each text string
+        """
 
         nlp = spacy.load("en_core_web_sm")
 
@@ -126,7 +137,13 @@ class Sentiment:
         return polarity
 
 
-    def save_plot(self, series, title=None):
+    def save_plot(self, series, title=None, filepath=None):
+        """Saves a plot
+
+        Args:
+            series (pandas.core.series.Series): Series of values to plot
+            title (str, optional): Title and filename of the plot. Defaults to None.
+        """
 
         plt.plot(series, label="Rolling Average Polarity")
 
@@ -137,10 +154,14 @@ class Sentiment:
         plt.xlabel('Date')
 
         plt.ylabel('Polarity')
+        
+        if filepath is None:
+            
+            filename = title.lower().replace(' ', '_')
+            
+            filepath = self.out_dir / f"{filename}_n_headlines_{self.df_length}.png"
 
-        plot_path = self.out_dir / f"{title}.png"
-
-        plt.savefig(plot_path)
+        plt.savefig(filepath)
 
         plt.close()
 
@@ -162,10 +183,10 @@ if __name__ == "__main__":
                         help='A path to the output directory.',
                         required=False)
 
-    parser.add_argument('--nrows',
-                        metavar="Number of rows",
+    parser.add_argument('--n_headlines',
+                        metavar="Number of headlines",
                         type=int,
-                        help='The number of rows to load from a dataframe',
+                        help='The number of headlines to load from a dataframe',
                         required=False)
 
     parser.add_argument('--bs',
