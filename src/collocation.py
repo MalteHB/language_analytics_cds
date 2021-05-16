@@ -78,7 +78,7 @@ class Collocation:
 
             self.number_of_files = len(files)  # Setting number of files to the entire corpus if None.
 
-            print(f"\nNumber of files is not specified.\nSetting it to '{self.number_of_files}'.\nIt is heavily advised to lower it by using the '--number_of_files' argument. Consider using 5.\n\n")
+            print(f"\nNumber of files is not specified.\nSetting it to the length of the corpus: '{self.number_of_files}'.\nIt is heavily advised to lower it by using the '--number_of_files' argument. Consider using 5.\n\n")
 
         print(f"Initiating collocation calculations for the files in '{self.data_dir}'")
 
@@ -100,8 +100,6 @@ class Collocation:
 
             O21 = self.disjoint_frequency(tokenized_text=tokenized_text, keyword=collocate, collocate=self.keyword, window_size=self.window_size)  # Disjoint frequency of collocate as keyword and keyword as collocate
 
-            # O22 = self.n_words_without_keyword_and_collocate(tokenized_text=tokenized_text, keyword=self.keyword, collocate=collocate)  # All the words in the corpus that are not either the keyword nor the collocate
-            # Ross specified that N is simply the length of the entire corpus, hence the outcommenting on O22. There is, however, still doubt whether to calculate N like this or by simply taking len(tokenized_text)
             N = len(tokenized_text)  # O11 + O12 + O21 + O22
 
             R1 = O11 + O12  # Calculating R1
@@ -126,21 +124,21 @@ class Collocation:
 
         df = df.sort_values("raw_frequency", ascending=False)  # Sorting collocates with highest frequency at the top.
 
-        write_path = self.out_dir / "collocates.csv"
+        write_path = self.out_dir / f"collocates_{self.number_of_files}_files.csv"
 
         df.to_csv(write_path)
 
-
-    def get_tokenized_text(self, file):
-
-        text = load_text(file)
-
-        tokenized_text = self.tokenize(text)
-
-        return tokenized_text
-
-
     def word_collocates(self, tokenized_text, keyword, window_size):
+        """Finds word collates in a tokenized text corpus.
+
+        Args:
+            tokenized_text (list): list of tokens. 
+            keyword (str): The keyword to create collocates for.
+            window_size (int): the window size
+
+        Returns:
+            list: List of unique collocates
+        """
 
         collocates = []
 
@@ -162,6 +160,15 @@ class Collocation:
 
 
     def raw_frequency(self, tokenized_text, keyword):
+        """Calculates the raw frequency of a word in a tokenized text.
+
+        Args:
+            tokenized_text (list): List of tokens
+            keyword (str): Keyword to create collocates for
+
+        Returns:
+            int: Frequency of the keyword in the tokenized text.
+        """
 
         word_counter = 0
 
@@ -175,6 +182,17 @@ class Collocation:
 
 
     def joint_frequency(self, tokenized_text, keyword, collocate, window_size):
+        """Calculates the joint frequency between a keyword and a word collocates
+
+        Args:
+            tokenized_text (list): list of tokens. 
+            keyword (str): The keyword.
+            collocate (str): The collocate.
+            window_size (int): the window size
+
+        Returns:
+            int: The joint frequency 
+        """
 
         joint_frequency = 0
 
@@ -196,6 +214,17 @@ class Collocation:
 
 
     def disjoint_frequency(self, tokenized_text, keyword, collocate, window_size):
+        """Calculates the disjoint frequency between a keyword and a word collocates
+
+        Args:
+            tokenized_text (list): list of tokens. 
+            keyword (str): The keyword.
+            collocate (str): The collocate.
+            window_size (int): the window size
+
+        Returns:
+            int: The disjoint frequency 
+        """
 
         disjoint_frequency = 0
 
@@ -214,20 +243,6 @@ class Collocation:
                     disjoint_frequency += 1
 
         return disjoint_frequency
-
-
-    def n_words_without_keyword_and_collocate(self, tokenized_text, keyword, collocate):
-
-        word_counter = 0
-
-        for word in tokenized_text:
-
-            if word not in keyword and word not in collocate:
-
-                word_counter += 1
-
-        return word_counter
-
 
     def tokenize(self, input_string):
         """Tokenizes text by whitespaces
@@ -250,6 +265,14 @@ class Collocation:
 
 
     def get_concatenated_texts(self, files):
+        """Concatenates all the files into one long tokenized list
+
+        Args:
+            files (list): list of file paths to the text corpus files
+
+        Returns:
+            list: list of a tokenized text corpus
+        """
 
         text_corpus = []
 
