@@ -64,6 +64,7 @@ def setting_default_out_dir(assignment=5):
 
         return model_out_dir
 
+
 def get_filepaths_from_data_dir(data_dir, file_extension="*.txt"):
     """Creates a list containing paths to filenames in a data directoryl
 

@@ -21,7 +21,7 @@ def main(args):
     # Importing arguments from the arguments parser
 
     dataset = args.ds
-
+    
     embedding_model = args.em
 
     topic_number = args.tn
@@ -36,11 +36,18 @@ def main(args):
 
     load_path = args.lp
 
-    danish_topic_model = MultilingualTopicFormers(dataset=dataset, embedding_model=embedding_model, out_dir=out_dir)
+    keep_hashtag_text = args.keep_hashtag_text
+
+    remove_stopwords = args.remove_stopwords
+
+    danish_topic_model = DanishTopicFormers(dataset=dataset,
+                                            embedding_model=embedding_model,
+                                            out_dir=out_dir)
 
     if load_model:
         
-        danish_topic_model.load_dataset_and_preprocess_data()
+        danish_topic_model.load_dataset_and_preprocess_data(keep_hashtag_text=keep_hashtag_text,
+                                                            remove_stopwords=remove_stopwords)
         
         danish_topic_model.create_topic_model()
 
@@ -50,7 +57,8 @@ def main(args):
 
     else:
 
-        danish_topic_model.load_dataset_and_preprocess_data()
+        danish_topic_model.load_dataset_and_preprocess_data(keep_hashtag_text=keep_hashtag_text,
+                                                            remove_stopwords=remove_stopwords)
 
         danish_topic_model.create_topic_model()
 
@@ -75,18 +83,18 @@ def main(args):
     print("\nDONE! Have a nice day. :-)")
 
 
-class MultilingualTopicFormers():
+class DanishTopicFormers():
 
     def __init__(self,
                  dataset="danish_political_comments",
                  embedding_model="distiluse-base-multilingual-cased-v2",
                  out_dir=None
                  ):
-        """Creates an instance of the MultilingualTopicFormers model
+        """Creates an instance of the DanishTopicFormers model
 
         Args:
             dataset (str, optional): A dataset from the Hugging Face hub. Defaults to "danish_political_comments".
-            embedding_model (str, optional): A multilingual model from sentence-transformers. Defaults to "distiluse-base-multilingual-cased-v2".
+            embedding_model (str, optional): A Danish model from sentence-transformers. Defaults to "distiluse-base-multilingual-cased-v2".
             out_dir (PosixPath, optional): Path to the output directory. Defaults to None.
 
         Raises:
@@ -125,7 +133,7 @@ class MultilingualTopicFormers():
 
         self.dataset = dataset
 
-    def load_dataset_and_preprocess_data(self, dataset=None):
+    def load_dataset_and_preprocess_data(self, dataset=None, keep_hashtag_text=True, remove_stopwords=False):
         """Load and preprocesses a Hugging Face dataset.
 
         Args:
@@ -143,7 +151,9 @@ class MultilingualTopicFormers():
 
         data = self._load_dataset(dataset)
 
-        self.texts = [self._cleaner(sentence["sentence"]) for sentence in data["train"]]
+        self.texts = [self._cleaner(sentence["sentence"],
+                                    keep_hashtag_text=keep_hashtag_text,
+                                    remove_stopwords=remove_stopwords) for sentence in data["train"]]
 
         return self.texts
 
@@ -163,7 +173,7 @@ class MultilingualTopicFormers():
 
         print("\nCreating topic model")
 
-        self.topic_model = BERTopic(embedding_model=embedding_model, calculate_probabilities=True)  # Creates instance of BERTopic model
+        self.topic_model = BERTopic(embedding_model=embedding_model, calculate_probabilities=True, verbose=True)  # Creates instance of BERTopic model
 
         return self.topic_model
 
@@ -365,37 +375,16 @@ class MultilingualTopicFormers():
 
         return data
 
-    def _cleaner(self, text, remove_hashtag_text=True):
+    def _cleaner(self, text, keep_hashtag_text=True, remove_stopwords=False):
         """Cleans a string of text. Very suitable for tweets.
 
         Args:
             text (str): String of text
-            remove_hashtag_text (bool, optional): Remove the text following a hashtag. Defaults to True.
+            keep_hashtag_text (bool, optional): Remove the text following a hashtag. Defaults to True.
 
         Returns:
             str: Cleaned string of text.
         """
-
-        stopwords = nltk.corpus.stopwords.words('danish')
-
-        stopwords.extend(["ad", "af", "aldrig", "alle", "alt", "anden",
-                          "andet", "andre", "at", "bare", "begge", "blev", "blive", "bliver",
-                          "da", "de", "dem", "den", "denne", "der", "deres", "det", "dette", "dig",
-                          "din", "dine", "disse", "dit", "dog", "du", "efter", "ej", "eller", "en",
-                          "end", "ene", "eneste", "enhver", "er", "et", "far", "fem", "fik", "fire",
-                          "flere", "fleste", "for", "fordi", "forrige", "fra", "få", "får", "før",
-                          "god", "godt", "ham", "han", "hans", "har", "havde", "have", "hej", "helt", "hende",
-                          "hendes", "her", "hos", "hun", "hvad", "hvem", "hver", "hvilken", "hvis",
-                          "hvor", "hvordan", "hvorfor", "hvornår", "i", "ikke", "ind", "ingen", "intet",
-                          "ja", "jeg", "jer", "jeres", "jo", "kan", "kom", "komme", "kommer", "kun", "kunne",
-                          "lad", "lav", "lidt", "lige", "lille", "man", "mand", "mange", "med", "meget",
-                          "men", "mens", "mere", "mig", "min", "mine", "mit", "mod", "må", "ned", "nej",
-                          "ni", "nogen", "noget", "nogle", "nu", "ny", "nyt", "når", "nær", "næste", "næsten",
-                          "og", "også", "okay", "om", "op", "os", "otte", "over", "på", "se", "seks", "selv",
-                          "ser", "ses", "sig", "sige", "sin", "sine", "sit", "skal", "skulle", "som", "stor",
-                          "store", "syv", "så", "sådan", "tag", "tage", "thi", "ti", "til", "to", "tre", "ud",
-                          "under", "var", "ved", "vi", "vil", "ville",
-                          "vor", "vores", "være", "været"])  # extending the list of stopwords
 
         text = re.sub("@[A-Za-z0-9]+", "", text)  # Remove @ sign
 
@@ -405,7 +394,7 @@ class MultilingualTopicFormers():
 
         text = ''.join(c for c in text if c not in emoji.UNICODE_EMOJI["en"])  # Remove Emojis
 
-        if remove_hashtag_text:
+        if not keep_hashtag_text:
 
             text = re.sub(r'\B#\w*[a-zA-Z]+\w*', '', text)  # Removing hashtags all together
 
@@ -413,9 +402,33 @@ class MultilingualTopicFormers():
 
             text = text.replace("#", "").replace("_", " ")  # Remove hashtag sign but keep the text
 
-        text_token_list = [word for word in text.split(' ') if word not in stopwords]  # Remove stopwords
+        if remove_stopwords:
+            
+            stopwords = nltk.corpus.stopwords.words('danish')
 
-        text = ' '.join(text_token_list)
+            stopwords.extend([
+                "ad", "af", "aldrig", "alle", "alt", "anden",
+                "andet", "andre", "at", "bare", "begge", "blev", "blive", "bliver",
+                "da", "de", "dem", "den", "denne", "der", "deres", "det", "dette", "dig",
+                "din", "dine", "disse", "dit", "dog", "du", "efter", "ej", "eller", "en",
+                "end", "ene", "eneste", "enhver", "er", "et", "far", "fem", "fik", "fire",
+                "flere", "fleste", "for", "fordi", "forrige", "fra", "få", "får", "før",
+                "god", "godt", "ham", "han", "hans", "har", "havde", "have", "hej", "helt", "hende",
+                "hendes", "her", "hos", "hun", "hvad", "hvem", "hver", "hvilken", "hvis",
+                "hvor", "hvordan", "hvorfor", "hvornår", "i", "ikke", "ind", "ingen", "intet",
+                "ja", "jeg", "jer", "jeres", "jo", "kan", "kom", "komme", "kommer", "kun", "kunne",
+                "lad", "lav", "lidt", "lige", "lille", "man", "mand", "mange", "med", "meget",
+                "men", "mens", "mere", "mig", "min", "mine", "mit", "mod", "må", "ned", "nej",
+                "ni", "nogen", "noget", "nogle", "nu", "ny", "nyt", "når", "nær", "næste", "næsten",
+                "og", "også", "okay", "om", "op", "os", "otte", "over", "på", "se", "seks", "selv",
+                "ser", "ses", "sig", "sige", "sin", "sine", "sit", "skal", "skulle", "som", "stor",
+                "store", "syv", "så", "sådan", "tag", "tage", "thi", "ti", "til", "to", "tre", "ud",
+                "under", "var", "ved", "vi", "vil", "ville",
+                "vor", "vores", "være", "været"])  # extending the list of stopwords
+        
+            text_token_list = [word for word in text.split(' ') if word not in stopwords]  # Remove stopwords
+
+            text = ' '.join(text_token_list)
 
         return text
 
@@ -476,12 +489,6 @@ if __name__ == "__main__":
                         help='Dataset to use from HuggingFace. Defaults to "dane".',
                         required=False)
 
-    parser.add_argument('--l',
-                        metavar="Language",
-                        type=str,
-                        help='Language of the dataset. Defaults to "danish".',
-                        required=False)
-
     parser.add_argument('--em',
                         metavar="Embedding Model",
                         type=str,
@@ -517,13 +524,27 @@ if __name__ == "__main__":
                         dest="lm",
                         help='Whether to load a model or not to',
                         action="store_true")
-
-    parser.set_defaults(lm=False)
     
     parser.add_argument('--lp',
                         metavar="Model Load Path",
                         type=str,
                         help='A path to the model output directory.',
                         required=False)
+
+    parser.set_defaults(lm=False)
+    
+    parser.add_argument('--kht',
+                        dest="keep_hashtag_text",
+                        help='Whether to keep the text of a hashtag or not to',
+                        action="store_true")
+
+    parser.set_defaults(keep_hashtag_text=False)
+    
+    parser.add_argument('--rs',
+                        dest="remove_stopwords",
+                        help='Whether to remove stopwords or not to',
+                        action="store_true")
+
+    parser.set_defaults(remove_stopwords=False)
 
     main(parser.parse_args())
