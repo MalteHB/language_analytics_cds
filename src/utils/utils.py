@@ -60,7 +60,7 @@ def setting_default_out_dir(assignment=5):
 
         root_dir = Path.cwd()
 
-        model_out_dir = root_dir / "models"
+        model_out_dir = root_dir / "out" / "models"
 
         return model_out_dir
 

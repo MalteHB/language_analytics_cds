@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModelForTokenClassification, DataCollatorForTokenClassification, TrainingArguments, Trainer, logging
 import datasets
 import numpy as np
+import pandas as pd
 
 from utils.utils import setting_default_out_dir
 
@@ -36,9 +37,9 @@ def main(args):
 
     sentence = args.s
 
-    train_model = args.train
-
     test_model = args.test
+    
+    predict = args.predict
 
     HFTP = HuggingFaceTokenClassification(dataset=dataset,
                                           language=language,
@@ -49,7 +50,32 @@ def main(args):
                                           epochs=epochs,
                                           task=task)
 
-    if train_model:
+    if predict:
+        
+        if sentence is None:
+    
+            sentence = "Ross er en dejlig mand, som kommer fra Skotland, og underviser på Aarhus Universitet."
+
+            print(f"\n\nINITIALISING PREDICTION OF STANDARD SENTENCE: '{sentence}'")
+
+            HFTP.predict(model_path=local_model_path, sentence=sentence)
+
+        else:
+            print(f"\n\nINITIALISING PREDICTION OF INPUT SENTENCE: '{sentence}'")
+
+            HFTP.predict(model_path=local_model_path, sentence=sentence)
+
+        print("\nDONE! Have a nice day. :-)")
+        
+    elif test_model:
+            
+        print("\n\nINITIALISING EVALUATION ON TEST DATASET!")
+
+        HFTP.setup_training()
+
+        HFTP.test_model()
+        
+    else:
 
         print("\n\nINITIALISING TRAINING!")
 
@@ -67,30 +93,24 @@ def main(args):
 
         print("\n\nINITIALISING EVALUATION ON TEST DATASET!")
 
-        HFTP.test_model()
-
-    if test_model:
-
-        print("\n\nINITIALISING EVALUATION ON TEST DATASET!")
-
         HFTP.setup_training()
 
         HFTP.test_model()
 
-    if sentence is None:
+        if sentence is None:
 
-        sentence = "Ross er en dejlig mand, som kommer fra Skotland, og underviser på Aarhus Universitet."
+            sentence = "Ross er en dejlig mand, som kommer fra Skotland, og underviser på Aarhus Universitet."
 
-        print(f"\n\nINITIALISING PREDICTION OF STANDARD SENTENCE: '{sentence}'")
+            print(f"\n\nINITIALISING PREDICTION OF STANDARD SENTENCE: '{sentence}'")
 
-        HFTP.predict(model_path=local_model_path, sentence=sentence)
+            HFTP.predict(model_path=local_model_path, sentence=sentence)
 
-    else:
-        print(f"\n\nINITIALISING PREDICTION OF INPUT SENTENCE: '{sentence}'")
+        else:
+            print(f"\n\nINITIALISING PREDICTION OF INPUT SENTENCE: '{sentence}'")
 
-        HFTP.predict(model_path=local_model_path, sentence=sentence)
+            HFTP.predict(model_path=local_model_path, sentence=sentence)
 
-    print("\nDONE! Have a nice day. :-)")
+            print("\nDONE! Have a nice day. :-)")
 
 
 class HuggingFaceTokenClassification():
@@ -313,15 +333,15 @@ class HuggingFaceTokenClassification():
 
         self.trainer.train()
 
-    def test_model(self):
+    def test_model(self, save_metrics=True):
         """Tests the trained model on the test dataset.
         """
 
-        def _compute_metrics(pred):
+        def _test_compute_metrics(pred):
             """Computes metrics from predictions. Adopted from: https://github.com/huggingface/notebooks/blob/master/examples/token_classification.ipynb
 
             Args:
-                pred (Dict): Predictions from the Trainer.evaluate() 
+                pred (Dict): Predictions from the Trainer.evaluate()
 
             Returns:
                 results_dict [Dict]: A dictionary containing the different metrics.
@@ -341,12 +361,14 @@ class HuggingFaceTokenClassification():
             ]
 
             results = self.metric.compute(predictions=true_predictions, references=true_labels)
+            
             results_dict = {
                 "precision": results["overall_precision"],
                 "recall": results["overall_recall"],
                 "f1": results["overall_f1"],
                 "accuracy": results["overall_accuracy"],
             }
+
             return results_dict
 
         logging.set_verbosity_error()
@@ -360,7 +382,7 @@ class HuggingFaceTokenClassification():
             eval_dataset=self.val,
             data_collator=self.data_collator,
             tokenizer=self.tokenizer,
-            compute_metrics=_compute_metrics
+            compute_metrics=_test_compute_metrics
         )
 
         predictions, labels, _ = trainer.predict(self.test)
@@ -377,7 +399,20 @@ class HuggingFaceTokenClassification():
         ]
 
         results = self.metric.compute(predictions=true_predictions, references=true_labels)
-        print(results)
+        
+        results_df = pd.DataFrame.from_records(results).transpose()
+        
+        print(results_df)
+        
+        if save_metrics:
+            
+            out_dir = setting_default_out_dir(assignment=5)
+            
+            csv_path = out_dir.parent / "test_metrics.csv"
+            
+            results_df.to_csv(csv_path)
+        
+        return results
 
     def evaluate_model(self):
 
@@ -397,7 +432,7 @@ class HuggingFaceTokenClassification():
         else:
 
             self.trainer.save_model(local_model_path)
-
+           
     def predict(self,
                 model_path=None,
                 sentence=None):
@@ -447,7 +482,7 @@ class HuggingFaceTokenClassification():
 
         new_tokens, new_labels, new_probs = [], [], []
 
-        # Collapsing tokens from word piece tokenization to actual tokens. 
+        # Collapsing tokens from word piece tokenization to actual tokens.
         for token, label_idx, probs in zip(tokens, logits_label, logits_confidence):
 
             if token.startswith("##"):
@@ -535,19 +570,19 @@ if __name__ == "__main__":
                         help='Sentence to be predicted by the trained model.',
                         required=False)
 
-    parser.add_argument('--train',
-                        dest="train",
-                        help='Whether to train a model or not to',
-                        action="store_true")
-
-    parser.set_defaults(train=False)
-
     parser.add_argument('--test',
                         dest="test",
                         help='Test the model',
                         action="store_true")
 
     parser.set_defaults(test=False)
+    
+    parser.add_argument('--p',
+                        dest="predict",
+                        help='Whether to only predict a sentence.',
+                        action="store_true")
+
+    parser.set_defaults(predict=False)
 
 
     main(parser.parse_args())

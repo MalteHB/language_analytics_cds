@@ -136,7 +136,7 @@ dmypy.json
 **/test-*
 
 # Models
-models/
+**/models/*
 
 # Notebooks
 notebooks/Transformers_Topic_modelling.ipynb

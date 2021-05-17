@@ -48,13 +48,13 @@ Start of by cloning this repository and creating a virtual environment with the 
 After initializing your own environment you can run the train a state-of-the-art Danish NER model from a command-line by using the following command:
 
 ```bash
-python src/HF_token_classification.py --train
+python src/HF_token_classification.py
 ```
 
 Once trained you can predict a sentence of your choice by using the '--s' flag. :
 
 ```bash
-python src/HF_token_classification.py --s "Ross er en dejlig mand, som kommer fra Skotland, og underviser på Aarhus Universitet."
+python src/HF_token_classification.py --p --s "Ross er en dejlig mand, som kommer fra Skotland, og underviser på Aarhus Universitet."
 ```
 
 For a list of capabilities use the '--help' flag.
