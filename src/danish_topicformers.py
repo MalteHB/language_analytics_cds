@@ -107,7 +107,7 @@ class DanishTopicFormers():
 
         if embedding_model is None:
 
-            embedding_model = "quora-distilbert-multilingual"
+            embedding_model = "distiluse-base-multilingual-cased-v2"
 
         # Asserting that the embedding model is in the ones usable by BERTopic
         self.possible_models = ["distiluse-base-multilingual-cased-v2",
@@ -403,6 +403,8 @@ class DanishTopicFormers():
             text = text.replace("#", "").replace("_", " ")  # Remove hashtag sign but keep the text
 
         if remove_stopwords:
+            
+            
             
             stopwords = nltk.corpus.stopwords.words('danish')
 
