@@ -17,4 +17,8 @@ python -m spacy download en_core_web_sm
 # Run the sentiment script 
 # If you want to, you can reduce runtime by setting the argument --n_headlines, which 
 # specifies how many headlines from the top of the .csv file you want to load. 
+# For a all the headlines (and thereby a long runtime):
 python src/sentiment.py
+
+# For a proof of concept and a decreased runtime:
+python src/sentiment.py --n_headlines 100000

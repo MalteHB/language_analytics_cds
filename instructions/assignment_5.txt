@@ -1,0 +1,18 @@
+# Clone the GitHub
+git clone https://github.com/MalteHB/language_analytics_cds.git
+cd language_analytics_cds 
+
+# Install anaconda for your OS. See https://docs.anaconda.com/anaconda/install/
+
+# Create and activate conda environment:
+conda create -n cds python=3.8
+conda activate cds
+
+# Install requirements
+pip install -r requirements.txt
+
+# Run the Hugging Face Token Classification script 
+python src/HF_token_classification.py
+
+# Optionally you can use the -h flag to see all the modifiable arguments:
+python src/HF_token_classification.py -h
